@@ -19,14 +19,16 @@ def perform_kmeans(data, n_clusters):
     return total_time, score
 
 # Función para realizar KNN y medir tiempo
-def perform_knn(X_train, X_test, y_train, y_test, n_neighbors):
+def perform_knn(x_train, x_test, y_train, y_test, n_neighbors):
     start_time = timeit.default_timer()
     knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-    knn.fit(X_train, y_train)
-    y_pred = knn.predict(X_test)
-    elapsed = timeit.default_timer() - start_time
+    knn.fit(x_train, y_train)
+    tempo1 = timeit.default_timer() - start_time  # tiempo de creación del modelo
+    start_time = timeit.default_timer()
+    y_pred = knn.predict(x_test)
+    tempo2 = timeit.default_timer() - start_time  # tiempo únicamente de predicción de datos
     accuracy = accuracy_score(y_test, y_pred)
-    return elapsed, accuracy
+    return tempo1, tempo2, accuracy
 
 
 if __name__ == '__main__':
@@ -36,7 +38,7 @@ if __name__ == '__main__':
     df = pd.read_csv(file_path)
 
     # Inicializar variables
-    sample_size = 74 # se ha colocado que tenga un tamaño de 74 cada muestra para obtener al menos 30 entradas
+    sample_size = 74  # se ha colocado que tenga un tamaño de 74 cada muestra para obtener al menos 30 entradas
     increment = 74
     num_rows = df.shape[0]
 
@@ -49,9 +51,9 @@ if __name__ == '__main__':
 
     # Iterar sobre el DataFrame incrementando el tamaño de la muestra
     while sample_size <= num_rows:
-        #sample_indices = np.random.choice(range(num_rows), sample_size, replace=False)
-        #sample = scaled_df[sample_indices]
-        #sample = scaled_df.sample(n=sample_size, random_state=0)
+        # sample_indices = np.random.choice(range(num_rows), sample_size, replace=False)
+        # sample = scaled_df[sample_indices]
+        # sample = scaled_df.sample(n=sample_size, random_state=0)
         sample = scaled_df.iloc[0:sample_size]
         # KMeans con 2 clusters
         time_2_clusters, score_2_clusters = perform_kmeans(sample, 2)
@@ -99,28 +101,25 @@ if __name__ == '__main__':
     # Iterar sobre el DataFrame incrementando el tamaño de la muestra
     while sample_size <= num_rows:
         # Seleccionar una muestra del DataFrame
-        #sample_indices = np.random.choice(range(num_rows), sample_size, replace=False)
-        #X_sample = X_scaled[sample_indices]
-        #y_sample = y[sample_indices]
+        # sample_indices = np.random.choice(range(num_rows), sample_size, replace=False)
+        # X_sample = X_scaled[sample_indices]
+        # y_sample = y[sample_indices]
 
         X_sample = X_scaled.iloc[0:sample_size]
         y_sample = y[0:sample_size]
         # Dividir la muestra en conjuntos de entrenamiento y prueba
         X_train, X_test, y_train, y_test = train_test_split(X_sample, y_sample, test_size=0.2, random_state=0)
 
-        # KNN con 2 clusters
-        time_2_knn, accuracy_2_knn = perform_knn(X_train, X_test, y_train, y_test, 2)
-
-        # KNN con 3 clusters
-        time_3_knn, accuracy_3_knn = perform_knn(X_train, X_test, y_train, y_test, 3)
+        # KNN con 5 puntos vecinos
+        time_create_model, time_apply_model, accuracy_5_knn = perform_knn(X_train, X_test, y_train, y_test, 5)
 
         # Almacenar resultados
         results_knn.append({
-            'sample_size': sample_size,
-            'time_2_knn': time_2_knn,
-            'score_2_knn': accuracy_2_knn,
-            'time_3_knn': time_3_knn,
-            'score_3_knn': accuracy_3_knn,
+            'sample_size_train': sample_size*0.80,  # corresponde al 80%
+            'time_create_model': time_create_model,
+            'sample_size_test': sample_size*0.20,  # corresponde al 20%
+            'time_apply_model': time_apply_model,
+            'score_5_knn': accuracy_5_knn
         })
 
         # Incrementar tamaño de la muestra
@@ -153,20 +152,20 @@ if __name__ == '__main__':
     # Mostrar el gráfico
     plt.show()
 
-    # Graficar knn 2 neighbors
-    plt.plot(results_df_knn['sample_size'], results_df_knn['time_2_knn'])
+    # Graficar knn creación modelo
+    plt.plot(results_df_knn['sample_size_train'], results_df_knn['time_create_model'])
     # Etiquetas y título del gráfico
-    plt.xlabel('Entradas')
+    plt.xlabel('Entradas datos prueba')
     plt.ylabel('Tiempo de corrida')
-    plt.title('Gráfico usando 2 Neighbors en KNN')
+    plt.title('Gráfico Creación Modelo KNN con datos de Prueba')
     # Mostrar el gráfico
     plt.show()
 
     # Graficar knn 3 neighbors
-    plt.plot(results_df_knn['sample_size'], results_df_knn['time_3_knn'])
+    plt.plot(results_df_knn['sample_size_test'], results_df_knn['time_apply_model'])
     # Etiquetas y título del gráfico
-    plt.xlabel('Entradas')
+    plt.xlabel('Entradas datos de testeo')
     plt.ylabel('Tiempo de corrida')
-    plt.title('Gráfico usando 3 Neighbors en KNN')
+    plt.title('Gráfico Aplicando KNN en datos de Testeo')
     # Mostrar el gráfico
     plt.show()
