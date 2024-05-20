@@ -15,8 +15,9 @@ def perform_kmeans(data, n_clusters):
     start_time = timeit.default_timer()
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(data)
     total_time = timeit.default_timer() - start_time
+    iteraciones = kmeans.n_iter_
     score = silhouette_score(data, kmeans.labels_)
-    return total_time, score
+    return total_time, score, iteraciones
 
 # Función para realizar KNN y medir tiempo
 def perform_knn(x_train, x_test, y_train, y_test, n_neighbors):
@@ -56,18 +57,20 @@ if __name__ == '__main__':
         # sample = scaled_df.sample(n=sample_size, random_state=0)
         sample = scaled_df.iloc[0:sample_size]
         # KMeans con 2 clusters
-        time_2_clusters, score_2_clusters = perform_kmeans(sample, 2)
+        time_2_clusters, score_2_clusters, iteraciones_2_clusters = perform_kmeans(sample, 2)
 
         # KMeans con 3 clusters
-        time_3_clusters, score_3_clusters = perform_kmeans(sample, 3)
+        time_3_clusters, score_3_clusters, iteraciones_2_clusters = perform_kmeans(sample, 3)
 
         # Almacenar resultados
         resultsmeans.append({
             'sample_size': sample_size,
             'time_2_clusters': time_2_clusters,
             'score_2_clusters': score_2_clusters,
+            'iteraciones_2_clusters': iteraciones_2_clusters,
             'time_3_clusters': time_3_clusters,
             'score_3_clusters': score_3_clusters,
+            'iteraciones_3_clusters': iteraciones_2_clusters
         })
 
         # Incrementar tamaño de la muestra
